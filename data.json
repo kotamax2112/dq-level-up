@@ -1,3 +1,4 @@
+
 {
   "version": 1,
   "compactCards": false,
@@ -16,7 +17,7 @@
     { "id":"p_victoria", "name":"Victoria Johnson", "teamId":"team_choc", "role":"Player", "xp":1825, "items":10, "coreBadges":["📅","🍡","🐝"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
     { "id":"p_lucas", "name":"Lucas Smithson", "teamId":"team_choc", "role":"Player", "xp":2275, "items":15, "coreBadges":["🌟","🐝","📅","🍟","⚡"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
     { "id":"p_jillian", "name":"Jillian Allen", "teamId":"team_choc", "role":"Player", "xp":2130, "items":16, "coreBadges":["📅","🐝"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
-    { "id":"p_emilyk", "name":"Emily Keniston", "teamId":"team_choc", "role":"Player", "xp":2900, "items":15, "coreBadges":["🌟","🎂","🐝"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_emily", "name":"Emily Keniston", "teamId":"team_choc", "role":"Player", "xp":2900, "items":15, "coreBadges":["🌟","🎂","🐝"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
     { "id":"p_chloe", "name":"Chloe Richardson", "teamId":"team_choc", "role":"Player", "xp":2200, "items":7, "coreBadges":["🍟","⚡"], "specialtyBadges":["🎓","⏰","🧨","🔮"], "negatives":[], "spinsAvailable":0 },
 
     { "id":"p_alayna", "name":"Alayna Channels", "teamId":"team_allstars", "role":"Captain", "xp":7455, "items":70, "coreBadges":["🗣️","📅","⚡","🛡️","🐝","🍡","🧁","🧹","🔥","🗑️","🎨","🧼","⏱","🌟","🅿️","🍟","🖌️","🎂"], "specialtyBadges":["🎓","⏰","🔮","💳"], "negatives":[], "spinsAvailable":1 },
