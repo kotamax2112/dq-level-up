@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "compactCards": false,
+  "teams": [
+    { "id":"team_choc", "name":"🍫The Chocaholics", "mascot":"🍫", "xp":33050, "items":262, "teamBankXp":3400, "teamBankItems":5235, "captain":"Grace Paytes", "mentor":"Lizzy Shelton" },
+    { "id":"team_allstars", "name":"⭐ The All Stars🍦", "mascot":"⭐", "xp":30275, "items":220, "teamBankXp":4400, "teamBankItems":7230, "captain":"Alayna Channels", "mentor":"McKenna Mackey" },
+    { "id":"team_cherry", "name":"🍒Cherry Dippers", "mascot":"🍒", "xp":23950, "items":166, "teamBankXp":2200, "teamBankItems":7390, "captain":"Devon Turner", "mentor":"Brooke Taulbee" },
+    { "id":"team_dynasty", "name":"🐲DQ Dynasty", "mascot":"🐲", "xp":28400, "items":212, "teamBankXp":5100, "teamBankItems":10630, "captain":"Brealyn Jackson", "mentor":"Kaden Kennedy" }
+  ],
+  "players": [
+    { "id":"p_grace", "name":"Grace Paytes", "teamId":"team_choc", "role":"Captain", "xp":3325, "items":22, "coreBadges":["🎂","🐝","🛡️","🍟","🤠"], "specialtyBadges":["🕹️","🎓","⏰","🔮","🥁","💳"], "negatives":[], "spinsAvailable":1 },
+    { "id":"p_lizzy", "name":"Lizzy Shelton", "teamId":"team_choc", "role":"Manager Mentor", "xp":4140, "items":37, "coreBadges":["📅","🧼","🖌️","🅿️","🌟","🍡","🛡️","🐝","⚡","⏱","🤠"], "specialtyBadges":["⏰","🧨","🔮"], "negatives":[], "spinsAvailable":1 },
+    { "id":"p_sonya", "name":"Sonya Morris", "teamId":"team_choc", "role":"Player", "xp":6790, "items":54, "coreBadges":["🎂","🤠","🧹","🛡️","🐝","🍡","🎨","🅿️","🌟","🔥","🧼","⏱","🙌"], "specialtyBadges":["⏰","🧨","🔮"], "negatives":[], "spinsAvailable":1 },
+    { "id":"p_lariyah", "name":"Lariyah Dalton", "teamId":"team_choc", "role":"Player", "xp":1900, "items":9, "coreBadges":["🌟","🐝"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_faith", "name":"Faith Gillis", "teamId":"team_choc", "role":"Player", "xp":5565, "items":77, "coreBadges":["🎂","🧼","🔥","🧹","🐝","🍡","🛡️","🍟","🖌️","🅿️","🌟","⚡","🎨","🤠","⏱"], "specialtyBadges":["⏰","🎉","🔮","🥁","💳"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_victoria", "name":"Victoria Johnson", "teamId":"team_choc", "role":"Player", "xp":1825, "items":10, "coreBadges":["📅","🍡","🐝"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_lucas", "name":"Lucas Smithson", "teamId":"team_choc", "role":"Player", "xp":2275, "items":15, "coreBadges":["🌟","🐝","📅","🍟","⚡"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_jillian", "name":"Jillian Allen", "teamId":"team_choc", "role":"Player", "xp":2130, "items":16, "coreBadges":["📅","🐝"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_emilyk", "name":"Emily Keniston", "teamId":"team_choc", "role":"Player", "xp":2900, "items":15, "coreBadges":["🌟","🎂","🐝"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_chloe", "name":"Chloe Richardson", "teamId":"team_choc", "role":"Player", "xp":2200, "items":7, "coreBadges":["🍟","⚡"], "specialtyBadges":["🎓","⏰","🧨","🔮"], "negatives":[], "spinsAvailable":0 },
+
+    { "id":"p_alayna", "name":"Alayna Channels", "teamId":"team_allstars", "role":"Captain", "xp":7455, "items":70, "coreBadges":["🗣️","📅","⚡","🛡️","🐝","🍡","🧁","🧹","🔥","🗑️","🎨","🧼","⏱","🌟","🅿️","🍟","🖌️","🎂"], "specialtyBadges":["🎓","⏰","🔮","💳"], "negatives":[], "spinsAvailable":1 },
+    { "id":"p_mckenna", "name":"McKenna Mackey", "teamId":"team_allstars", "role":"Manager Mentor", "xp":2830, "items":28, "coreBadges":["🍡","🧼","🐝","⚡","🗣️","🍟","🎂","📅"], "specialtyBadges":["⏰","🧨","🔮"], "negatives":[], "spinsAvailable":1 },
+    { "id":"p_hannahb", "name":"Hannah Barrett", "teamId":"team_allstars", "role":"Player", "xp":4255, "items":33, "coreBadges":["🎂","🍟","🧼","🛡️","🐝","🧹","🌟"], "specialtyBadges":["⏰","🧨","🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_ryan", "name":"Ryan Smith", "teamId":"team_allstars", "role":"Player", "xp":975, "items":9, "coreBadges":["🐝","🤠","🧹","🌟"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_tyler", "name":"Tyler Hart", "teamId":"team_allstars", "role":"Player", "xp":1600, "items":8, "coreBadges":["🌟","🧁"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_kenzie", "name":"Kenzie Davis", "teamId":"team_allstars", "role":"Player", "xp":480, "items":4, "coreBadges":["🧼"], "specialtyBadges":[], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_ava", "name":"Ava Furnish", "teamId":"team_allstars", "role":"Player", "xp":6165, "items":37, "coreBadges":["🅿️","🖌️","🐝","🧼","🗑️","🛡️","🎂","🍟"], "specialtyBadges":["⏰","🧨","🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_ethan", "name":"Ethan Humphries", "teamId":"team_allstars", "role":"Player", "xp":1850, "items":8, "coreBadges":["🐝"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_jazmine", "name":"Jazmine Brown", "teamId":"team_allstars", "role":"Player", "xp":2565, "items":15, "coreBadges":["🧼","🤠","🌟","🧁","🗣️"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_dominic", "name":"Dominic Allen", "teamId":"team_allstars", "role":"Player", "xp":2100, "items":8, "coreBadges":["🌟","🧁"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+
+    { "id":"p_devon", "name":"Devon Turner", "teamId":"team_cherry", "role":"Captain", "xp":5190, "items":39, "coreBadges":["🧹","📅","🖌️","🛡️","🤠","🍟","🔥","🌟","🙌","🅿️","🍡","🐝","🧼","🗣️","🗑️","🧁","🎂","⏱","🎨","⚡"], "specialtyBadges":["🕹️","🎉","🎓","⏰","🔮","💳"], "negatives":[], "spinsAvailable":1 },
+    { "id":"p_brooke", "name":"Brooke Taulbee", "teamId":"team_cherry", "role":"Manager Mentor", "xp":8220, "items":62, "coreBadges":["🌟","🐝","🎂","📅","⚡","🍡","🛡️","🧼","🍟","🗑️","🅿️","🔥","🧁","⏱"], "specialtyBadges":["🎓","⏰","🧨","🔮","🥁","💳"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_annie", "name":"Annie Keaton", "teamId":"team_cherry", "role":"Player", "xp":2955, "items":21, "coreBadges":["🌟","📅","🗣️","⚡","🛡️","🍟","🍡","🐝"], "specialtyBadges":["⏰","🧨","🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_seth", "name":"Seth Dixon", "teamId":"team_cherry", "role":"Player", "xp":1885, "items":11, "coreBadges":["🌟","🐝","🖌️","🅿️","📅"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_alivia", "name":"Alivia Brewster", "teamId":"team_cherry", "role":"Player", "xp":2385, "items":12, "coreBadges":["🌟","🧹","🐝","🍡","🎂"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_kameryn", "name":"Kameryn Harris", "teamId":"team_cherry", "role":"Player", "xp":1535, "items":7, "coreBadges":["🐝","🍡"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_peyton", "name":"Peyton Murphy", "teamId":"team_cherry", "role":"Player", "xp":980, "items":10, "coreBadges":[], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_riley", "name":"Riley Hull", "teamId":"team_cherry", "role":"Player", "xp":800, "items":4, "coreBadges":[], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_michael", "name":"Michael Willhite", "teamId":"team_cherry", "role":"Player", "xp":1800, "items":9, "coreBadges":["🎂"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+
+    { "id":"p_brealyn", "name":"Brealyn Jackson", "teamId":"team_dynasty", "role":"Captain", "xp":2355, "items":17, "coreBadges":["🧼","🎂","🅿️","🌟","🗣️","🧁"], "specialtyBadges":["⏰","🧨","🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_kaden", "name":"Kaden Kennedy", "teamId":"team_dynasty", "role":"Manager Mentor", "xp":5530, "items":44, "coreBadges":["🅿️","📅","⚡","🧹","🖌️","🛡️","🗣️","🐝","🧁","🎂"], "specialtyBadges":["⏰","🧨","🔮","💳"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_hannahl", "name":"Hannah Lanning", "teamId":"team_dynasty", "role":"Player", "xp":1500, "items":11, "coreBadges":["🧹","📅"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_vivian", "name":"Vivian Moore", "teamId":"team_dynasty", "role":"Player", "xp":6850, "items":65, "coreBadges":["🍡","🗣️","🧹","🅿️","🛡️","⚡","🖌️","🔥","🍟","🌟","🧼","⏱","🙌","🎨","🤠"], "specialtyBadges":["🕹️","🎓","⏰","🧨","🔮","💳"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_conner", "name":"Conner Smithson", "teamId":"team_dynasty", "role":"Player", "xp":2590, "items":20, "coreBadges":["🎂","🅿️","🗑️","🧼","🛡️","📅","🌟"], "specialtyBadges":["⏰","🧨","🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_madden", "name":"Madden McAllister", "teamId":"team_dynasty", "role":"Player", "xp":3150, "items":15, "coreBadges":["🎨"], "specialtyBadges":["⏰","🧨","🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_nevaeh", "name":"Nevaeh Nance", "teamId":"team_dynasty", "role":"Player", "xp":2325, "items":14, "coreBadges":["🐝","🖌️","🍟"], "specialtyBadges":["🔮"], "negatives":[], "spinsAvailable":0 },
+    { "id":"p_emmab", "name":"Emma Brooks", "teamId":"team_dynasty", "role":"Player", "xp":2725, "items":16, "coreBadges":["📅","🐝","🌟","🧼","🎂"], "specialtyBadges":["🕹️","⏰","🎓"], "negatives":["🦺"], "spinsAvailable":0 },
+    { "id":"p_colton", "name":"Colton Zeiher", "teamId":"team_dynasty", "role":"Player", "xp":1375, "items":10, "coreBadges":["📅"], "specialtyBadges":["🕹️","⏰"], "negatives":[], "spinsAvailable":1 }
+  ],
+  "logs": [],
+  "wheelLogs": []
+}
