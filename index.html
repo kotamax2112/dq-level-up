@@ -2,47 +2,251 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Level Up at DQ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 
-<header>
-  <h1>🍦 Level Up at DQ</h1>
-  <nav>
-    <button onclick="showTab('overview')">Overview</button>
-    <button onclick="showTab('teams')">Teams</button>
-    <button onclick="showTab('players')">Players</button>
-    <button onclick="showTab('wheel')">🎰 Wheel</button>
-    <button onclick="showTab('activity')">Activity</button>
-    <button onclick="showTab('admin')">🔒 Admin</button>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🍦</div>
+      <div>
+        <div class="brand-title">Level Up at DQ</div>
+        <div class="brand-sub">Live scoreboard + wheel + badges</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button id="btnQuickBackup" class="btn ghost">Quick Backup</button>
+      <button id="btnQuickLog" class="btn ghost">Open Activity</button>
+      <button id="btnAdmin" class="btn gold">🔒 Admin</button>
+    </div>
+  </header>
+
+  <nav id="tabs" class="tabs">
+    <button class="tab active" data-view="overviewView">Overview</button>
+    <button class="tab" data-view="teamsView">Teams</button>
+    <button class="tab" data-view="playersView">Players</button>
+    <button class="tab" data-view="wheelView">Wheel</button>
+    <button class="tab" data-view="activityView">Activity</button>
+    <button class="tab" data-view="settingsView">Settings</button>
   </nav>
-</header>
 
-<main>
-  <section id="overview" class="tab"></section>
-  <section id="teams" class="tab"></section>
-  <section id="players" class="tab"></section>
-  <section id="wheel" class="tab"></section>
-  <section id="activity" class="tab"></section>
+  <main class="wrap">
 
-  <section id="admin" class="tab">
-    <div id="admin-locked">
-      <h2>Admin Access</h2>
-      <input type="password" id="adminPin" placeholder="Enter PIN" />
-      <button onclick="unlockAdmin()">Unlock</button>
+    <!-- =======================
+         OVERVIEW
+    ======================== -->
+    <section id="overviewView" class="view active">
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-title">Teams</div>
+          <div id="overviewTeamTiles" class="team-tiles"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Closest to 🌈 Rainbow</div>
+          <div class="panel-sub">Tap a player card anywhere to jump around.</div>
+          <div id="overviewRainbowList" class="list"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Spins Queue 🎰</div>
+        <div class="panel-sub">Tap a row to jump straight to the wheel for that player.</div>
+        <div id="overviewSpinsList" class="list"></div>
+      </div>
+    </section>
+
+    <!-- =======================
+         TEAMS
+    ======================== -->
+    <section id="teamsView" class="view">
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-title">Team List</div>
+          <div id="teamList"></div>
+          <button id="btnTeamsCompactToggle" class="btn ghost block">Toggle Compact Cards</button>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Team Detail</div>
+          <div id="teamDetail"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================
+         PLAYERS
+    ======================== -->
+    <section id="playersView" class="view">
+      <div class="panel">
+        <div class="panel-title">Players</div>
+
+        <div class="filters">
+          <select id="playersFilterTeam"></select>
+          <select id="playersFilterRole">
+            <option value="all">All Roles</option>
+            <option value="Captain">Captain</option>
+            <option value="Manager Mentor">Manager Mentor</option>
+            <option value="Player">Player</option>
+          </select>
+          <input id="playersSearch" type="text" placeholder="Search player name…" />
+        </div>
+
+        <div id="playersGrid" class="players-grid"></div>
+      </div>
+    </section>
+
+    <!-- =======================
+         WHEEL
+    ======================== -->
+    <section id="wheelView" class="view">
+      <div class="panel">
+        <div class="panel-title">Prize Roller 🎰</div>
+        <div class="panel-sub">Select a player → confirm → spin. Level-ups add spins automatically.</div>
+
+        <div class="wheel-top">
+          <select id="wheelPlayerSelect"></select>
+          <div id="wheelSpinChip" class="chip">Spins Available: 0</div>
+        </div>
+
+        <div class="wheel-shell">
+          <div class="wheel-pointer-left">▶</div>
+          <div class="wheel-pointer-right">◀</div>
+          <div id="wheelBelt" class="wheel-belt"></div>
+          <div class="wheel-shadow"></div>
+        </div>
+
+        <div class="wheel-controls">
+          <button id="wheelSpinBtn" class="btn gold">ROLL THE DRUM</button>
+          <button id="wheelRefreshBtn" class="btn green" style="display:none;">🔄 SPIN AGAIN</button>
+
+          <div class="result-box">
+            <div id="wheelResultTitle" class="result-title">READY TO SPIN</div>
+            <div id="wheelResultDesc" class="result-desc">Select a player, then roll.</div>
+            <div id="wheelRarityBadge" class="result-rarity"></div>
+          </div>
+        </div>
+
+        <div id="wheelApplyBox" class="panel wheel-apply" style="display:none;">
+          <div class="panel-title">Apply Result?</div>
+          <div id="wheelApplySub" class="panel-sub"></div>
+          <div class="row">
+            <button id="wheelApplyNowBtn" class="btn gold">Apply Now</button>
+            <button id="wheelLogOnlyBtn" class="btn ghost">Log Only</button>
+            <button id="wheelUndoSpinBtn" class="btn danger">Undo Spin</button>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-title">Possible Drops (tap for info)</div>
+            <div id="wheelLootGrid" class="wheel-loot-grid"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Wheel History</div>
+            <div id="wheelFeed" class="wheel-feed"></div>
+            <div class="row">
+              <button id="wheelClearSpinsBtn" class="btn ghost">Clear Selected Player Spins</button>
+              <button id="wheelClearHistoryBtn" class="btn danger">Delete Wheel History</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================
+         ACTIVITY
+    ======================== -->
+    <section id="activityView" class="view">
+      <div class="panel">
+        <div class="panel-title">Activity Feed (cannot be “cleared” by users)</div>
+        <div class="panel-sub">Newest on top. Includes awards, level-ups, and wheel effects.</div>
+        <div id="activityList"></div>
+        <div class="row">
+          <button id="btnClearActivity" class="btn danger">Clear Awards Activity (Admin)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================
+         SETTINGS
+    ======================== -->
+    <section id="settingsView" class="view">
+      <div class="panel">
+        <div class="panel-title">Backup / Restore</div>
+        <div class="panel-sub">Use this to move your live state between phone/tablet/work PC.</div>
+
+        <div class="row">
+          <button id="btnExport" class="btn gold">Export JSON</button>
+          <button id="btnReset" class="btn danger">Reset to Seed</button>
+        </div>
+
+        <div class="panel-sub" style="margin-top:14px;">Import from file:</div>
+        <input id="importFile" type="file" accept="application/json" />
+
+        <div class="panel-sub" style="margin-top:14px;">Or paste JSON:</div>
+        <textarea id="importText" rows="8" placeholder="Paste JSON here…"></textarea>
+        <button id="btnImportPaste" class="btn green block">Import Pasted JSON</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ACTION PICKER MODAL -->
+  <div id="modalOverlay" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Award an Action</div>
+          <div class="modal-sub">Search and tap to award.</div>
+        </div>
+        <button id="modalCloseBtn" class="btn ghost">✕</button>
+      </div>
+
+      <input id="actionSearch" class="modal-search" placeholder="Search actions…" />
+      <div id="actionGrid" class="action-grid"></div>
+
+      <div class="row">
+        <button id="modalCancelBtn" class="btn ghost block">Cancel</button>
+      </div>
     </div>
-    <div id="admin-unlocked" style="display:none;">
-      <h2>Admin Controls</h2>
-      <button onclick="exportData()">⬇ Export data.json</button>
-      <button onclick="lockAdmin()">🔒 Lock Admin</button>
+  </div>
+
+  <!-- WHEEL INFO MODAL -->
+  <div id="wheelModalOverlay" class="modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <div id="wheelModalTitle" class="modal-title">TITLE</div>
+          <div id="wheelModalRarity" class="modal-sub">RARITY</div>
+        </div>
+        <button id="wheelModalCloseBtn" class="btn ghost">✕</button>
+      </div>
+      <div id="wheelModalDesc" class="modal-body"></div>
+      <button id="wheelModalOkBtn" class="btn gold block">OK</button>
     </div>
-  </section>
-</main>
+  </div>
 
-<div id="toast"></div>
+  <!-- ADMIN PIN MODAL -->
+  <div id="adminModal" class="modal">
+    <div class="modal-card">
+      <div class="modal-title">🔒 Admin Unlock</div>
+      <div class="modal-sub">Awarding points/badges requires the PIN.</div>
+      <input id="adminPinInput" class="modal-search" type="password" inputmode="numeric" placeholder="Enter PIN…" />
+      <div class="row">
+        <button id="adminUnlockBtn" class="btn gold block">Unlock</button>
+        <button id="adminLockBtn" class="btn danger block">Lock</button>
+      </div>
+    </div>
+  </div>
 
-<script src="app.js"></script>
+  <!-- TOASTS -->
+  <div id="toastWrap" class="toast-wrap"></div>
+
+  <script src="app.js"></script>
 </body>
 </html>
