@@ -1,39 +1,36 @@
 /* LEVEL UP AT DQ — Full App JS (LocalStorage App)
-   Admin PIN: 2112
+   Admin PIN: 2112 (prompt-based, no stuck modal)
 */
 
 /* =========================
-   ADMIN PIN GATE
+   Admin Gate (SAFE)
 ========================= */
 const ADMIN_PIN = "2112";
-const ADMIN_FLAG_KEY = "levelUpDQ_adminUnlocked_v1"; // device-specific unlock
+const ADMIN_UNLOCK_KEY = "levelUpDQ_adminUnlocked_v1";
 
-function isAdminUnlocked() {
-  return localStorage.getItem(ADMIN_FLAG_KEY) === "yes";
+function isAdmin() {
+  return localStorage.getItem(ADMIN_UNLOCK_KEY) === "1";
 }
 
-function lockAdmin() {
-  localStorage.removeItem(ADMIN_FLAG_KEY);
-  showToast("Admin locked", "This device is now view-only.", null);
-  renderAllWithBindings();
-}
+function requireAdmin(actionLabel = "do that") {
+  // Already unlocked on this device/session
+  if (isAdmin()) return true;
 
-function requireAdminPin(onSuccess) {
-  if (isAdminUnlocked()) {
-    onSuccess?.();
+  const entered = prompt(`Admin PIN required to ${actionLabel}.\n\nEnter PIN:`);
+  if (entered === null) return false;
+
+  if (String(entered).trim() === ADMIN_PIN) {
+    localStorage.setItem(ADMIN_UNLOCK_KEY, "1");
     return true;
   }
-  const pin = prompt("Enter Admin PIN");
-  if (pin === null) return false;
-  if (String(pin).trim() === ADMIN_PIN) {
-    localStorage.setItem(ADMIN_FLAG_KEY, "yes");
-    showToast("Admin unlocked", "Editing enabled on this device.", null);
-    onSuccess?.();
-    renderAllWithBindings();
-    return true;
-  }
-  alert("Incorrect PIN");
+
+  alert("Wrong PIN.");
   return false;
+}
+
+// Optional helper if you ever want to lock again on this device:
+function adminLockThisDevice() {
+  localStorage.removeItem(ADMIN_UNLOCK_KEY);
 }
 
 /* =========================
@@ -129,6 +126,14 @@ function getLevelTitle(levels, xp) {
   return levels[getLevelIndex(levels, xp)].title;
 }
 
+function getNextThreshold(levels, xp) {
+  const idx = getLevelIndex(levels, xp);
+  const current = levels[idx];
+  const nextIdx = idx - 1;
+  if (nextIdx < 0) return { nextMin: current.minXP, isMax: true };
+  return { nextMin: levels[nextIdx].minXP, isMax: false };
+}
+
 function progressToNext(levels, xp) {
   const idx = getLevelIndex(levels, xp);
   const curMin = levels[idx].minXP;
@@ -184,7 +189,7 @@ function actionBySymbol(sym) {
 }
 
 /* =========================
-   Seed data (current state)
+   Seed data (your current state) — FULL
 ========================= */
 const SEED = {
   version: 1,
@@ -249,50 +254,59 @@ let state = loadState() || deepClone(SEED);
 saveState(state);
 
 let selectedTeamId = null;
-let lastUndoPayload = null;
-let wheelLastUndo = null;
+let lastUndoPayload = null; // last award undo snapshot
+let wheelLastUndo = null;   // last spin undo snapshot
 
 /* =========================
    Helpers
 ========================= */
+function fmt(n) {
+  return (n ?? 0).toLocaleString();
+}
+
 function findTeam(teamId) {
   return state.teams.find(t => t.id === teamId) || null;
 }
+
 function findPlayer(playerId) {
   return state.players.find(p => p.id === playerId) || null;
 }
+
 function rainbowCount(player) {
   const set = new Set((player.coreBadges || []).filter(b => CORE_BADGES.includes(b)));
   return set.size;
 }
+
 function ensureRainbowBadge(player) {
   if (rainbowCount(player) >= 20) {
     if (!player.specialtyBadges) player.specialtyBadges = [];
     if (!player.specialtyBadges.includes("🌈")) player.specialtyBadges.push("🌈");
   }
 }
+
 function computeSpinsOnLevelUp(player, oldXP, newXP) {
   const oldIdx = getLevelIndex(PLAYER_LEVELS, oldXP);
   const newIdx = getLevelIndex(PLAYER_LEVELS, newXP);
+
   const oldRank = PLAYER_LEVELS.length - oldIdx;
   const newRank = PLAYER_LEVELS.length - newIdx;
+
   const gained = Math.max(0, newRank - oldRank);
   if (gained > 0) player.spinsAvailable = (player.spinsAvailable || 0) + gained;
   return gained;
 }
+
 function getTeamProgress(team) {
   return progressToNext(TEAM_LEVELS, team.xp || 0);
 }
+
 function getPlayerProgress(player) {
   return progressToNext(PLAYER_LEVELS, player.xp || 0);
 }
 
-/* =========================
-   View
-========================= */
 function setView(viewId) {
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-  document.getElementById(viewId)?.classList.add("active");
+  document.getElementById(viewId).classList.add("active");
 
   document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
   document.querySelector(`.tab[data-view="${viewId}"]`)?.classList.add("active");
@@ -304,12 +318,10 @@ function setView(viewId) {
 }
 
 /* =========================
-   Toast
+   Toast + Undo
 ========================= */
 function showToast(title, subtitle, onUndo) {
   const wrap = document.getElementById("toastWrap");
-  if (!wrap) return;
-
   const el = document.createElement("div");
   el.className = "toast";
   el.innerHTML = `
@@ -339,11 +351,10 @@ function showToast(title, subtitle, onUndo) {
 }
 
 /* =========================
-   Award Logic (Admin-only)
+   Award Logic (tap emoji) — ADMIN LOCKED
 ========================= */
 function awardEmojiToPlayer(playerId, symbol, qty = 1) {
-  // Any state-changing action requires admin PIN
-  if (!requireAdminPin(() => {})) return;
+  if (!requireAdmin("award points / badges")) return;
 
   const player = findPlayer(playerId);
   if (!player) return;
@@ -399,7 +410,8 @@ function awardEmojiToPlayer(playerId, symbol, qty = 1) {
   if (state.logs.length > 250) state.logs.pop();
 
   saveState(state);
-  renderAllWithBindings();
+
+  renderAll();
 
   lastUndoPayload = snap;
 
@@ -407,14 +419,13 @@ function awardEmojiToPlayer(playerId, symbol, qty = 1) {
   const sub = gainedSpins > 0
     ? `Level up! +${gainedSpins} spin${gainedSpins===1?"":"s"} added.`
     : `Applied to ${player.name}.`;
-
   showToast(title, sub, () => undoLastAward());
 }
 
 function undoLastAward() {
-  if (!lastUndoPayload || lastUndoPayload.type !== "award") return;
-  if (!requireAdminPin(() => {})) return;
+  if (!requireAdmin("undo award")) return;
 
+  if (!lastUndoPayload || lastUndoPayload.type !== "award") return;
   const { playerId, before, teamBefore, logsLenBefore } = lastUndoPayload;
   const player = findPlayer(playerId);
   if (!player) return;
@@ -429,13 +440,13 @@ function undoLastAward() {
   state.logs = state.logs.slice(0, logsLenBefore);
 
   saveState(state);
-  renderAllWithBindings();
+  renderAll();
   showToast("Undone", "Last award reverted.", null);
   lastUndoPayload = null;
 }
 
 /* =========================
-   Modal: Action Picker (Admin-only)
+   Modal: Action Picker — ADMIN LOCKED
 ========================= */
 const modalOverlay = document.getElementById("modalOverlay");
 const modalCloseBtn = document.getElementById("modalCloseBtn");
@@ -445,7 +456,7 @@ const actionSearch = document.getElementById("actionSearch");
 let modalContext = null;
 
 function openActionPicker(playerId) {
-  if (!requireAdminPin(() => {})) return;
+  if (!requireAdmin("open the award menu")) return;
 
   modalContext = { playerId };
   actionSearch.value = "";
@@ -496,13 +507,10 @@ actionSearch?.addEventListener("input", (e) => renderActionGrid(e.target.value))
 ========================= */
 function renderOverview() {
   const teamTiles = document.getElementById("overviewTeamTiles");
-  if (!teamTiles) return;
-
   teamTiles.innerHTML = "";
   state.teams.forEach(t => {
     const prog = getTeamProgress(t);
     const title = getLevelTitle(TEAM_LEVELS, t.xp || 0);
-
     const el = document.createElement("div");
     el.className = "team-tile";
     el.innerHTML = `
@@ -526,84 +534,71 @@ function renderOverview() {
     el.addEventListener("click", () => {
       setView("teamsView");
       selectedTeamId = t.id;
-      renderTeamsWithBindings();
+      renderTeams();
     });
     teamTiles.appendChild(el);
   });
 
-  // Rainbow list
   const rainbowList = document.getElementById("overviewRainbowList");
-  if (rainbowList) {
-    const sorted = [...state.players].sort((a,b) => {
-      const am = 20 - rainbowCount(a);
-      const bm = 20 - rainbowCount(b);
-      if (am !== bm) return am - bm;
-      return (b.xp||0) - (a.xp||0);
-    }).slice(0, 8);
+  const sorted = [...state.players].sort((a,b) => {
+    const am = 20 - rainbowCount(a);
+    const bm = 20 - rainbowCount(b);
+    if (am !== bm) return am - bm;
+    return (b.xp||0) - (a.xp||0);
+  }).slice(0, 8);
 
-    rainbowList.innerHTML = "";
-    sorted.forEach(p => {
-      const missing = 20 - rainbowCount(p);
+  rainbowList.innerHTML = "";
+  sorted.forEach(p => {
+    const missing = 20 - rainbowCount(p);
+    const el = document.createElement("div");
+    el.className = "list-item";
+    el.innerHTML = `
+      <div class="list-left">
+        <div class="avatar">${findTeam(p.teamId)?.mascot || "🍦"}</div>
+        <div>
+          <div class="list-name">${p.name}</div>
+          <div class="list-sub">${getLevelTitle(PLAYER_LEVELS, p.xp||0)} • Missing ${missing}</div>
+        </div>
+      </div>
+      <div class="right-strong">${rainbowCount(p)}/20</div>
+    `;
+    rainbowList.appendChild(el);
+  });
+
+  const spinsList = document.getElementById("overviewSpinsList");
+  const spinsSorted = [...state.players].filter(p => (p.spinsAvailable||0) > 0)
+    .sort((a,b) => (b.spinsAvailable||0) - (a.spinsAvailable||0))
+    .slice(0, 10);
+
+  spinsList.innerHTML = "";
+  if (spinsSorted.length === 0) {
+    spinsList.innerHTML = `<div class="list-item"><div class="list-left"><div class="avatar">🎰</div><div><div class="list-name">No spins pending</div><div class="list-sub">Level-ups add spins automatically.</div></div></div><div class="right-strong">0</div></div>`;
+  } else {
+    spinsSorted.forEach(p => {
       const el = document.createElement("div");
       el.className = "list-item";
       el.innerHTML = `
         <div class="list-left">
-          <div class="avatar">${findTeam(p.teamId)?.mascot || "🍦"}</div>
+          <div class="avatar">🎰</div>
           <div>
             <div class="list-name">${p.name}</div>
-            <div class="list-sub">${getLevelTitle(PLAYER_LEVELS, p.xp||0)} • Missing ${missing}</div>
+            <div class="list-sub">${findTeam(p.teamId)?.name || ""}</div>
           </div>
         </div>
-        <div class="right-strong">${rainbowCount(p)}/20</div>
+        <div class="right-strong">${p.spinsAvailable}</div>
       `;
-      rainbowList.appendChild(el);
-    });
-  }
-
-  // Spins list
-  const spinsList = document.getElementById("overviewSpinsList");
-  if (spinsList) {
-    const spinsSorted = [...state.players].filter(p => (p.spinsAvailable||0) > 0)
-      .sort((a,b) => (b.spinsAvailable||0) - (a.spinsAvailable||0))
-      .slice(0, 10);
-
-    spinsList.innerHTML = "";
-    if (spinsSorted.length === 0) {
-      spinsList.innerHTML = `<div class="list-item"><div class="list-left"><div class="avatar">🎰</div><div><div class="list-name">No spins pending</div><div class="list-sub">Level-ups add spins automatically.</div></div></div><div class="right-strong">0</div></div>`;
-    } else {
-      spinsSorted.forEach(p => {
-        const el = document.createElement("div");
-        el.className = "list-item";
-        el.innerHTML = `
-          <div class="list-left">
-            <div class="avatar">🎰</div>
-            <div>
-              <div class="list-name">${p.name}</div>
-              <div class="list-sub">${findTeam(p.teamId)?.name || ""}</div>
-            </div>
-          </div>
-          <div class="right-strong">${p.spinsAvailable}</div>
-        `;
-        el.addEventListener("click", () => {
-          setView("wheelView");
-          document.getElementById("wheelPlayerSelect").value = p.id;
-          renderWheel();
-        });
-        spinsList.appendChild(el);
+      el.addEventListener("click", () => {
+        setView("wheelView");
+        document.getElementById("wheelPlayerSelect").value = p.id;
+        renderWheel();
       });
-    }
-  }
-
-  // Optional: show admin state somewhere if you have #adminStatus
-  const adminStatus = document.getElementById("adminStatus");
-  if (adminStatus) {
-    adminStatus.textContent = isAdminUnlocked() ? "Admin: ON" : "Admin: OFF";
+      spinsList.appendChild(el);
+    });
   }
 }
 
 function renderTeams() {
   const list = document.getElementById("teamList");
-  if (!list) return;
   list.innerHTML = "";
 
   state.teams.forEach(t => {
@@ -622,14 +617,12 @@ function renderTeams() {
     `;
     el.addEventListener("click", () => {
       selectedTeamId = t.id;
-      renderTeamsWithBindings();
+      renderTeams();
     });
     list.appendChild(el);
   });
 
   const detail = document.getElementById("teamDetail");
-  if (!detail) return;
-
   const team = selectedTeamId ? findTeam(selectedTeamId) : null;
   if (!team) {
     detail.innerHTML = `
@@ -696,13 +689,8 @@ function renderPlayerCard(player) {
   const specialtyBadges = (player.specialtyBadges || []).slice(0, 10);
   const negatives = (player.negatives || []).slice(0, 10);
 
-  const canEdit = isAdminUnlocked();
-
-  const quickBtns = QUICK_EMOJIS.map(sym =>
-    `<button class="quick-btn" data-award="${sym}" title="${actionBySymbol(sym)?.label || ""}" ${canEdit ? "" : "disabled"}>${sym}</button>`
-  ).join("");
-
-  const moreBtn = `<button class="quick-btn more" data-more="1" ${canEdit ? "" : "disabled"}>More…</button>`;
+  const quickBtns = QUICK_EMOJIS.map(sym => `<button class="quick-btn" data-award="${sym}" title="${actionBySymbol(sym)?.label || ""}">${sym}</button>`).join("");
+  const moreBtn = `<button class="quick-btn more" data-more="1">More…</button>`;
 
   const negRow = negatives.length
     ? `<div class="badge-row">${negatives.map(n => `<span class="badge">${n}</span>`).join("")}</div>`
@@ -716,13 +704,11 @@ function renderPlayerCard(player) {
     ? `<div class="badge-row">${coreBadges.map(b => `<span class="badge">${b}</span>`).join("")}</div>`
     : `<div class="small muted">No core badges yet</div>`;
 
-  const rainbowGlow = coreCount >= 20 ? ` style="outline:2px solid rgba(255,0,255,0.6); box-shadow:0 0 18px rgba(0,255,255,0.35)"` : "";
-
-  return `
-    <div class="player-card" data-player-id="${player.id}"${rainbowGlow}>
+  const html = `
+    <div class="player-card" data-player-id="${player.id}">
       <div class="player-top">
         <div>
-          <div class="player-name">${player.name} ${coreCount>=20 ? "🌈" : ""}</div>
+          <div class="player-name">${player.name}</div>
           <div class="small muted">${team?.name || ""}</div>
         </div>
         <div class="role">${player.role}</div>
@@ -750,7 +736,7 @@ function renderPlayerCard(player) {
       </div>
 
       <div>
-        <div class="small muted" style="margin-bottom:6px;">Quick Award ${canEdit ? "" : "• (Admin locked)"}</div>
+        <div class="small muted" style="margin-bottom:6px;">Quick Award</div>
         <div class="quick-row">${quickBtns}${moreBtn}</div>
       </div>
 
@@ -771,10 +757,11 @@ function renderPlayerCard(player) {
 
       <div class="quick-row">
         <button class="quick-btn more" data-wheel="1">Wheel →</button>
-        <button class="quick-btn more" data-clearspins="1" ${canEdit ? "" : "disabled"}>Clear Spins</button>
+        <button class="quick-btn more" data-clearspins="1">Clear Spins</button>
       </div>
     </div>
   `;
+  return html;
 }
 
 function bindPlayerCardEvents(rootEl=document) {
@@ -784,7 +771,6 @@ function bindPlayerCardEvents(rootEl=document) {
 
     card.querySelectorAll("button[data-award]").forEach(btn => {
       btn.addEventListener("click", () => {
-        if (!requireAdminPin(() => {})) return;
         const sym = btn.getAttribute("data-award");
         awardEmojiToPlayer(playerId, sym, 1);
       });
@@ -792,10 +778,7 @@ function bindPlayerCardEvents(rootEl=document) {
 
     const more = card.querySelector("button[data-more]");
     if (more) {
-      more.addEventListener("click", () => {
-        if (!requireAdminPin(() => {})) return;
-        openActionPicker(playerId);
-      });
+      more.addEventListener("click", () => openActionPicker(playerId));
     }
 
     const wheelBtn = card.querySelector("button[data-wheel]");
@@ -810,7 +793,8 @@ function bindPlayerCardEvents(rootEl=document) {
     const clearBtn = card.querySelector("button[data-clearspins]");
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
-        if (!requireAdminPin(() => {})) return;
+        if (!requireAdmin("clear spins")) return;
+
         const p = findPlayer(playerId);
         if (!p) return;
         const before = p.spinsAvailable || 0;
@@ -828,7 +812,7 @@ function bindPlayerCardEvents(rootEl=document) {
           gainedSpins: 0
         });
         saveState(state);
-        renderAllWithBindings();
+        renderAll();
         showToast("Spins cleared", `${p.name}: ${before} → 0`, null);
       });
     }
@@ -838,11 +822,8 @@ function bindPlayerCardEvents(rootEl=document) {
 function renderPlayers() {
   const teamSel = document.getElementById("playersFilterTeam");
   const roleSel = document.getElementById("playersFilterRole");
-  const searchEl = document.getElementById("playersSearch");
-  const grid = document.getElementById("playersGrid");
-  if (!teamSel || !roleSel || !searchEl || !grid) return;
+  const q = (document.getElementById("playersSearch").value || "").trim().toLowerCase();
 
-  const q = (searchEl.value || "").trim().toLowerCase();
   const teamFilter = teamSel.value || "all";
   const roleFilter = roleSel.value || "all";
 
@@ -852,17 +833,17 @@ function renderPlayers() {
     .filter(p => q ? p.name.toLowerCase().includes(q) : true)
     .sort((a,b) => (b.xp||0) - (a.xp||0));
 
+  const grid = document.getElementById("playersGrid");
   grid.innerHTML = list.map(p => renderPlayerCard(p)).join("");
   bindPlayerCardEvents(grid);
 }
 
 function renderActivity() {
   const list = document.getElementById("activityList");
-  if (!list) return;
   const logs = state.logs.slice(0, 60);
 
   if (logs.length === 0) {
-    list.innerHTML = `<div class="activity-row"><div><div><strong>No activity yet</strong></div><div class="meta">Go to Teams → tap an emoji (Admin).</div></div></div>`;
+    list.innerHTML = `<div class="activity-row"><div><div><strong>No activity yet</strong></div><div class="meta">Go to Teams → tap an emoji.</div></div></div>`;
     return;
   }
 
@@ -873,7 +854,7 @@ function renderActivity() {
     return `
       <div class="activity-row">
         <div>
-          <div><strong>${l.kind === "award" ? `+${fmt(l.xpDelta)} ${l.symbol}` : `${l.label || l.kind}`}</strong> ${p ? `→ ${p.name}` : ""}</div>
+          <div><strong>${l.kind === "award" ? `+${fmt(l.xpDelta)} ${l.symbol}` : `${l.label}`}</strong> ${p ? `→ ${p.name}` : ""}</div>
           <div class="meta">${t ? t.name : ""} • ${when}${l.gainedSpins ? ` • +${l.gainedSpins} spin(s)` : ""}</div>
         </div>
         <div class="right-strong">${l.kind === "award" ? fmt(l.xpDelta) : ""}</div>
@@ -893,6 +874,8 @@ function renderAll() {
 
 /* =========================
    Wheel (Prize Roller integration)
+   NOTE: Wheel itself is viewable/spinnable by anyone.
+   We only lock: clearing spins, wheel history delete, applying effects, undo spin (optional)
 ========================= */
 const wheelPrizes = [
   { text: "+$200 Team Bank", weight: 25, bg: "#7f8c8d", desc: "A solid contribution to the team funds." },
@@ -924,11 +907,13 @@ const wheelEls = {
   spinChip: document.getElementById("wheelSpinChip"),
   clearSpinsBtn: document.getElementById("wheelClearSpinsBtn"),
   clearHistoryBtn: document.getElementById("wheelClearHistoryBtn"),
+
   applyBox: document.getElementById("wheelApplyBox"),
   applySub: document.getElementById("wheelApplySub"),
   applyNowBtn: document.getElementById("wheelApplyNowBtn"),
   logOnlyBtn: document.getElementById("wheelLogOnlyBtn"),
   undoSpinBtn: document.getElementById("wheelUndoSpinBtn"),
+
   modalOverlay: document.getElementById("wheelModalOverlay"),
   modalTitle: document.getElementById("wheelModalTitle"),
   modalRarity: document.getElementById("wheelModalRarity"),
@@ -959,16 +944,16 @@ function renderWheelSelectors() {
 }
 
 function selectedWheelPlayer() {
-  const id = wheelEls.playerSelect?.value;
-  return id ? findPlayer(id) : null;
+  const id = wheelEls.playerSelect.value;
+  return findPlayer(id);
 }
 
 function updateWheelSpinUI() {
   const p = selectedWheelPlayer();
   const spins = p ? (p.spinsAvailable || 0) : 0;
-  if (wheelEls.spinChip) wheelEls.spinChip.textContent = `Spins Available: ${spins}`;
-  if (wheelEls.spinBtn) wheelEls.spinBtn.disabled = spins <= 0;
-  if (wheelEls.applyBox) wheelEls.applyBox.style.display = "none";
+  wheelEls.spinChip.textContent = `Spins Available: ${spins}`;
+  wheelEls.spinBtn.disabled = spins <= 0;
+  wheelEls.applyBox.style.display = "none";
 }
 
 function wheelInitIfNeeded() {
@@ -980,29 +965,29 @@ function wheelInitIfNeeded() {
   renderWheelFeed();
   updateWheelSpinUI();
 
-  wheelEls.playerSelect?.addEventListener("change", () => {
+  wheelEls.playerSelect.addEventListener("change", () => {
     resetWheelUI();
     updateWheelSpinUI();
   });
 
-  wheelEls.spinBtn?.addEventListener("click", () => spinWheel());
-  wheelEls.refreshBtn?.addEventListener("click", () => resetWheelUI());
+  wheelEls.spinBtn.addEventListener("click", () => spinWheel());
+  wheelEls.refreshBtn.addEventListener("click", () => resetWheelUI());
 
-  // Clearing spins is ADMIN-only
-  wheelEls.clearSpinsBtn?.addEventListener("click", () => {
-    if (!requireAdminPin(() => {})) return;
+  // Admin-locked actions:
+  wheelEls.clearSpinsBtn.addEventListener("click", () => {
+    if (!requireAdmin("clear spins")) return;
     const p = selectedWheelPlayer();
     if (!p) return;
     const before = p.spinsAvailable || 0;
     p.spinsAvailable = 0;
     saveState(state);
     updateWheelSpinUI();
-    renderAllWithBindings();
+    renderAll();
     showToast("Spins cleared", `${p.name}: ${before} → 0`, null);
   });
 
-  wheelEls.clearHistoryBtn?.addEventListener("click", () => {
-    if (!requireAdminPin(() => {})) return;
+  wheelEls.clearHistoryBtn.addEventListener("click", () => {
+    if (!requireAdmin("delete wheel history")) return;
     if (!confirm("Delete wheel history?")) return;
     state.wheelLogs = [];
     saveState(state);
@@ -1010,23 +995,32 @@ function wheelInitIfNeeded() {
     showToast("Wheel history cleared", "Deleted.", null);
   });
 
-  wheelEls.applyNowBtn?.addEventListener("click", () => applyWheelEffect(true));
-  wheelEls.logOnlyBtn?.addEventListener("click", () => applyWheelEffect(false));
-  wheelEls.undoSpinBtn?.addEventListener("click", () => undoLastWheelSpin());
+  // apply prompt actions — admin-locked (because it changes team bank / logs)
+  wheelEls.applyNowBtn.addEventListener("click", () => {
+    if (!requireAdmin("apply wheel effect")) return;
+    applyWheelEffect(true);
+  });
+  wheelEls.logOnlyBtn.addEventListener("click", () => applyWheelEffect(false));
 
-  wheelEls.modalClose?.addEventListener("click", () => wheelEls.modalOverlay?.classList.remove("show"));
-  wheelEls.modalOk?.addEventListener("click", () => wheelEls.modalOverlay?.classList.remove("show"));
-  wheelEls.modalOverlay?.addEventListener("click", (e) => {
-    if (e.target === wheelEls.modalOverlay) wheelEls.modalOverlay?.classList.remove("show");
+  wheelEls.undoSpinBtn.addEventListener("click", () => {
+    if (!requireAdmin("undo wheel spin")) return;
+    undoLastWheelSpin();
+  });
+
+  wheelEls.modalClose.addEventListener("click", () => wheelEls.modalOverlay.classList.remove("show"));
+  wheelEls.modalOk.addEventListener("click", () => wheelEls.modalOverlay.classList.remove("show"));
+  wheelEls.modalOverlay.addEventListener("click", (e) => {
+    if (e.target === wheelEls.modalOverlay) wheelEls.modalOverlay.classList.remove("show");
   });
 }
 
 function initWheelRoller() {
-  if (!wheelEls.belt) return;
   wheelEls.belt.innerHTML = "";
   wheelRenderList = [];
-  for (let i=0; i<WHEEL_MULTIPLIER; i++) wheelRenderList = wheelRenderList.concat(wheelPrizes);
-
+  const spinPrizes = wheelPrizes;
+  for (let i=0; i<WHEEL_MULTIPLIER; i++) {
+    wheelRenderList = wheelRenderList.concat(spinPrizes);
+  }
   wheelRenderList.forEach(item => {
     const card = document.createElement("div");
     card.className = "wheel-prize-card";
@@ -1039,17 +1033,7 @@ function initWheelRoller() {
   });
 }
 
-function wheelRarityInfo(prize) {
-  if (prize.isLegendary) return { label: "LEGENDARY", color: "#f1c40f" };
-  if (prize.isBad) return { label: "NEGATIVE", color: "#ff3355" };
-  if (prize.weight <= 3) return { label: "EPIC", color: "#8e44ad" };
-  if (prize.weight <= 5) return { label: "RARE", color: "#2980b9" };
-  if (prize.weight <= 8) return { label: "UNCOMMON", color: "#2ecc71" };
-  return { label: "COMMON", color: "#7f8c8d" };
-}
-
 function initWheelLootTable() {
-  if (!wheelEls.lootGrid) return;
   wheelEls.lootGrid.innerHTML = "";
   const sorted = [...wheelPrizes].sort((a,b) => a.weight - b.weight);
   sorted.forEach(pr => {
@@ -1062,7 +1046,6 @@ function initWheelLootTable() {
       <div class="wheel-loot-bar" style="background:${pr.bg}"></div>
     `;
     el.addEventListener("click", () => {
-      if (!wheelEls.modalOverlay) return;
       wheelEls.modalTitle.textContent = pr.text;
       wheelEls.modalRarity.textContent = info.label;
       wheelEls.modalRarity.style.color = info.color;
@@ -1071,6 +1054,15 @@ function initWheelLootTable() {
     });
     wheelEls.lootGrid.appendChild(el);
   });
+}
+
+function wheelRarityInfo(prize) {
+  if (prize.isLegendary) return { label: "LEGENDARY", color: "#f1c40f" };
+  if (prize.isBad) return { label: "NEGATIVE", color: "#ff3355" };
+  if (prize.weight <= 3) return { label: "EPIC", color: "#8e44ad" };
+  if (prize.weight <= 5) return { label: "RARE", color: "#2980b9" };
+  if (prize.weight <= 8) return { label: "UNCOMMON", color: "#2ecc71" };
+  return { label: "COMMON", color: "#7f8c8d" };
 }
 
 function getWheelWeightedWinner() {
@@ -1087,25 +1079,23 @@ function getWheelWeightedWinner() {
   return { index: finalIndex, data: wheelPrizes[idx] };
 }
 
+// Wheel spin is allowed without admin PIN (as requested)
 function spinWheel() {
   const p = selectedWheelPlayer();
   if (!p) return;
 
-  // Player spinning is allowed without admin
   const spins = p.spinsAvailable || 0;
   if (spins <= 0) {
     showToast("No spins available", "Level up to earn spins.", null);
     return;
   }
 
-  if (!wheelEls.spinBtn || !wheelEls.belt) return;
-
   wheelEls.spinBtn.disabled = true;
   wheelEls.resultTitle.textContent = "SPINNING…";
   wheelEls.resultTitle.style.color = "#fff";
   wheelEls.resultDesc.textContent = "Good luck!";
   wheelEls.rarityBadge.textContent = "";
-  if (wheelEls.applyBox) wheelEls.applyBox.style.display = "none";
+  wheelEls.applyBox.style.display = "none";
 
   wheelEls.belt.style.transition = "none";
   wheelEls.belt.style.transform = "translateY(0px)";
@@ -1146,7 +1136,6 @@ function handleWheelWin(prize) {
     wheelLogsLenBefore: state.wheelLogs.length
   };
 
-  // consume spin (this changes state; allow without admin because it's "player action")
   p.spinsAvailable = Math.max(0, (p.spinsAvailable || 0) - 1);
 
   const now = new Date();
@@ -1171,35 +1160,40 @@ function handleWheelWin(prize) {
 
   renderWheelFeed();
   updateWheelSpinUI();
-  renderAllWithBindings();
+  renderAll();
 
   wheelEls.spinBtn.style.display = "none";
   wheelEls.refreshBtn.style.display = "inline-block";
 
-  if (wheelEls.applyBox) {
-    wheelEls.applyBox.style.display = "block";
+  if (wheelPendingEffect) {
     wheelEls.applySub.textContent =
-      wheelPendingEffect
-        ? `This can add +${fmt(wheelPendingEffect.amount)} to the selected player's Team Bank XP. (Admin required to apply)`
-        : `No automatic effect for this prize. You can leave it logged, or undo.`;
+      wheelPendingEffect.kind === "teamBankXp"
+        ? `This can add +${fmt(wheelPendingEffect.amount)} to the selected player's Team Bank XP.`
+        : `This can apply an effect.`;
+    wheelEls.applyBox.style.display = "block";
+  } else {
+    wheelEls.applyBox.style.display = "block";
+    wheelEls.applySub.textContent = "No automatic effect for this prize. You can keep it as a logged win, or undo.";
+    wheelEls.applyNowBtn.textContent = "OK";
+    wheelEls.logOnlyBtn.style.display = "none";
   }
 
   showToast("Spin recorded", `${p.name} → ${prize.text} (${info.label})`, null);
 }
 
 function applyWheelEffect(applyNow) {
-  // Applying effects changes team state => ADMIN only
-  if (!requireAdminPin(() => {})) return;
-
   const p = selectedWheelPlayer();
   if (!p) return;
 
   if (!wheelPendingEffect) {
-    if (wheelEls.applyBox) wheelEls.applyBox.style.display = "none";
+    wheelEls.applyBox.style.display = "none";
+    wheelEls.applyNowBtn.textContent = "Apply Now";
+    wheelEls.logOnlyBtn.style.display = "inline-block";
     return;
   }
+
   if (!applyNow) {
-    if (wheelEls.applyBox) wheelEls.applyBox.style.display = "none";
+    wheelEls.applyBox.style.display = "none";
     return;
   }
 
@@ -1223,17 +1217,14 @@ function applyWheelEffect(applyNow) {
     });
 
     saveState(state);
-    renderAllWithBindings();
+    renderAll();
     showToast("Effect applied", `${team.name}: +${fmt(wheelPendingEffect.amount)} Team Bank XP`, null);
   }
 
-  if (wheelEls.applyBox) wheelEls.applyBox.style.display = "none";
+  wheelEls.applyBox.style.display = "none";
 }
 
 function undoLastWheelSpin() {
-  // Undo changes state => ADMIN only
-  if (!requireAdminPin(() => {})) return;
-
   if (!wheelLastUndo) return;
   const { playerId, beforePlayer, beforeTeam, wheelLogsLenBefore } = wheelLastUndo;
 
@@ -1250,9 +1241,9 @@ function undoLastWheelSpin() {
   saveState(state);
   renderWheelFeed();
   updateWheelSpinUI();
-  renderAllWithBindings();
+  renderAll();
 
-  if (wheelEls.applyBox) wheelEls.applyBox.style.display = "none";
+  wheelEls.applyBox.style.display = "none";
   wheelEls.spinBtn.style.display = "inline-block";
   wheelEls.refreshBtn.style.display = "none";
   wheelEls.resultTitle.textContent = "READY TO SPIN";
@@ -1265,15 +1256,16 @@ function undoLastWheelSpin() {
 }
 
 function resetWheelUI() {
-  if (!wheelEls.spinBtn) return;
   wheelEls.spinBtn.style.display = "inline-block";
-  if (wheelEls.refreshBtn) wheelEls.refreshBtn.style.display = "none";
+  wheelEls.refreshBtn.style.display = "none";
   wheelEls.spinBtn.disabled = false;
   wheelEls.resultTitle.textContent = "READY TO SPIN";
   wheelEls.resultTitle.style.color = "#00f3ff";
   wheelEls.resultDesc.textContent = "Select a player, then roll.";
   wheelEls.rarityBadge.textContent = "";
-  if (wheelEls.applyBox) wheelEls.applyBox.style.display = "none";
+  wheelEls.applyBox.style.display = "none";
+  wheelEls.applyNowBtn.textContent = "Apply Now";
+  wheelEls.logOnlyBtn.style.display = "inline-block";
   updateWheelSpinUI();
 }
 
@@ -1305,7 +1297,7 @@ function renderWheel() {
 }
 
 /* =========================
-   Export / Import / Reset
+   Settings: Export / Import / Reset — ADMIN LOCKED
 ========================= */
 function downloadJSON(filename, obj) {
   const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
@@ -1320,12 +1312,12 @@ function downloadJSON(filename, obj) {
 }
 
 function resetToSeed() {
-  if (!requireAdminPin(() => {})) return;
+  if (!requireAdmin("reset all data")) return;
   if (!confirm("Reset everything to seed data? This cannot be undone.")) return;
   state = deepClone(SEED);
   saveState(state);
   selectedTeamId = null;
-  renderAllWithBindings();
+  renderAll();
   showToast("Reset complete", "Seed data restored.", null);
 }
 
@@ -1335,19 +1327,11 @@ function resetToSeed() {
 document.getElementById("tabs")?.addEventListener("click", (e) => {
   const btn = e.target.closest(".tab");
   if (!btn) return;
-  const view = btn.getAttribute("data-view");
-
-  // Only gate if it’s an "admin-style" section (you can change this list)
-  const viewsThatRequireAdminToEnter = ["settingsView"];
-  if (viewsThatRequireAdminToEnter.includes(view)) {
-    requireAdminPin(() => setView(view));
-  } else {
-    setView(view);
-  }
+  setView(btn.getAttribute("data-view"));
 });
 
 document.getElementById("btnQuickBackup")?.addEventListener("click", () => {
-  // exporting is fine without admin
+  if (!requireAdmin("export data")) return;
   downloadJSON("LevelUpDQ_backup.json", state);
 });
 
@@ -1356,10 +1340,10 @@ document.getElementById("btnQuickLog")?.addEventListener("click", () => {
 });
 
 document.getElementById("btnTeamsCompactToggle")?.addEventListener("click", () => {
-  if (!requireAdminPin(() => {})) return;
+  if (!requireAdmin("change layout")) return;
   state.compactCards = !state.compactCards;
   saveState(state);
-  renderTeamsWithBindings();
+  renderTeams();
   showToast("Layout updated", state.compactCards ? "Compact cards enabled." : "Compact cards disabled.", null);
 });
 
@@ -1368,16 +1352,14 @@ const filterRoleSel = document.getElementById("playersFilterRole");
 const playersSearch = document.getElementById("playersSearch");
 
 function populatePlayersTeamFilter() {
-  if (!filterTeamSel) return;
   filterTeamSel.innerHTML = `<option value="all">All</option>` + state.teams.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
 }
-
 filterTeamSel?.addEventListener("change", renderPlayers);
 filterRoleSel?.addEventListener("change", renderPlayers);
 playersSearch?.addEventListener("input", renderPlayers);
 
 document.getElementById("btnClearActivity")?.addEventListener("click", () => {
-  if (!requireAdminPin(() => {})) return;
+  if (!requireAdmin("clear activity")) return;
   if (!confirm("Clear award activity history? (Wheel history is separate)")) return;
   state.logs = [];
   saveState(state);
@@ -1385,12 +1367,14 @@ document.getElementById("btnClearActivity")?.addEventListener("click", () => {
   showToast("Activity cleared", "Awards history cleared.", null);
 });
 
-document.getElementById("btnExport")?.addEventListener("click", () => downloadJSON("LevelUpDQ_backup.json", state));
-
+document.getElementById("btnExport")?.addEventListener("click", () => {
+  if (!requireAdmin("export data")) return;
+  downloadJSON("LevelUpDQ_backup.json", state);
+});
 document.getElementById("btnReset")?.addEventListener("click", resetToSeed);
 
 document.getElementById("importFile")?.addEventListener("change", async (e) => {
-  if (!requireAdminPin(() => {})) return;
+  if (!requireAdmin("import data")) { e.target.value = ""; return; }
   const file = e.target.files?.[0];
   if (!file) return;
   const txt = await file.text();
@@ -1400,7 +1384,7 @@ document.getElementById("importFile")?.addEventListener("change", async (e) => {
     state = obj;
     saveState(state);
     selectedTeamId = null;
-    renderAllWithBindings();
+    renderAll();
     showToast("Import complete", "Data loaded from file.", null);
   } catch {
     showToast("Import failed", "That file isn't valid JSON.", null);
@@ -1408,8 +1392,8 @@ document.getElementById("importFile")?.addEventListener("change", async (e) => {
 });
 
 document.getElementById("btnImportPaste")?.addEventListener("click", () => {
-  if (!requireAdminPin(() => {})) return;
-  const txt = document.getElementById("importText")?.value?.trim();
+  if (!requireAdmin("import data")) return;
+  const txt = document.getElementById("importText").value.trim();
   if (!txt) return showToast("Nothing to import", "Paste JSON first.", null);
   try {
     const obj = JSON.parse(txt);
@@ -1417,15 +1401,12 @@ document.getElementById("btnImportPaste")?.addEventListener("click", () => {
     state = obj;
     saveState(state);
     selectedTeamId = null;
-    renderAllWithBindings();
+    renderAll();
     showToast("Import complete", "Data loaded from pasted JSON.", null);
   } catch {
     showToast("Import failed", "Pasted text isn't valid JSON.", null);
   }
 });
-
-// Optional: if you have a button with id="btnAdminLock"
-document.getElementById("btnAdminLock")?.addEventListener("click", lockAdmin);
 
 /* =========================
    Initial Render
@@ -1436,7 +1417,7 @@ function renderTeamListDefaults() {
 
 function bindAfterRender() {
   const detail = document.getElementById("teamDetail");
-  if (detail) bindPlayerCardEvents(detail);
+  bindPlayerCardEvents(detail);
 }
 
 function renderAllWithBindings() {
@@ -1449,7 +1430,6 @@ function renderTeamsWithBindings() {
   bindAfterRender();
 }
 
-// Patch renderTeams to bind card events after it changes DOM
 const _renderTeams = renderTeams;
 renderTeams = function() {
   _renderTeams();
