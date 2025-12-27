@@ -3,72 +3,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Level Up at DQ</title>
-  <link rel="stylesheet" href="style.css?v=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <header class="topbar">
-  <div class="brand">
-    <div class="logo">🍦</div>
-    <div>
-      <div class="brand-title">Level Up at DQ</div>
-      <div class="brand-sub">Live scoreboard + wheel + badges</div>
-    </div>
-  </div>
+  <h1>🍦 Level Up at DQ</h1>
   <div class="top-actions">
-    <button id="btnQuickBackup" class="btn ghost">Quick Backup</button>
-    <button id="btnQuickLog" class="btn ghost">Open Activity</button>
-    <button id="btnAdmin" class="btn gold">🔒 Admin</button>
+    <button id="btnQuickBackup">⬇ Backup</button>
+    <button id="btnQuickLog">📜 Activity</button>
   </div>
 </header>
 
-<nav id="tabs" class="tabs">
+<nav id="tabs">
   <button class="tab active" data-view="overviewView">Overview</button>
   <button class="tab" data-view="teamsView">Teams</button>
   <button class="tab" data-view="playersView">Players</button>
-  <button class="tab" data-view="wheelView">Wheel</button>
   <button class="tab" data-view="activityView">Activity</button>
-  <button class="tab" data-view="settingsView">Settings</button>
+  <button class="tab" data-view="wheelView">🎰 Wheel</button>
 </nav>
 
-<main class="wrap">
+<main>
 
-<section id="overviewView" class="view active">
-  <div class="grid2">
-    <div class="panel">
-      <div class="panel-title">Teams</div>
-      <div id="overviewTeamTiles" class="team-tiles"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-title">Closest to 🌈 Rainbow</div>
-      <div id="overviewRainbowList" class="list"></div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="panel-title">Spins Queue 🎰</div>
-    <div id="overviewSpinsList" class="list"></div>
-  </div>
-</section>
+  <section id="overviewView" class="view active">
+    <h2>Team Overview</h2>
+    <div id="overviewTeamTiles" class="grid"></div>
 
-<section id="teamsView" class="view">
-  <div class="grid2">
-    <div class="panel">
-      <div class="panel-title">Team List</div>
-      <div id="teamList"></div>
-      <button id="btnTeamsCompactToggle" class="btn ghost block">Toggle Compact Cards</button>
-    </div>
-    <div class="panel">
-      <div class="panel-title">Team Detail</div>
-      <div id="teamDetail"></div>
-    </div>
-  </div>
-</section>
+    <h3>🌈 Rainbow Watch</h3>
+    <div id="overviewRainbowList"></div>
 
-<section id="playersView" class="view">
-  <div class="panel">
-    <div class="panel-title">Players</div>
+    <h3>🎰 Spins Available</h3>
+    <div id="overviewSpinsList"></div>
+  </section>
+
+  <section id="teamsView" class="view">
+    <div class="split">
+      <div id="teamList" class="panel"></div>
+      <div id="teamDetail" class="panel"></div>
+    </div>
+  </section>
+
+  <section id="playersView" class="view">
     <div class="filters">
       <select id="playersFilterTeam"></select>
       <select id="playersFilterRole">
@@ -77,78 +55,51 @@
         <option value="Manager Mentor">Manager Mentor</option>
         <option value="Player">Player</option>
       </select>
-      <input id="playersSearch" placeholder="Search player name…" />
+      <input id="playersSearch" placeholder="Search players…" />
     </div>
-    <div id="playersGrid" class="players-grid"></div>
-  </div>
-</section>
+    <div id="playersGrid" class="grid"></div>
+  </section>
 
-<section id="wheelView" class="view">
-  <div class="panel">
-    <div class="panel-title">Prize Roller 🎰</div>
-    <div class="wheel-top">
-      <select id="wheelPlayerSelect"></select>
-      <div id="wheelSpinChip" class="chip">Spins Available: 0</div>
+  <section id="activityView" class="view">
+    <div class="activity-head">
+      <h2>Activity Log</h2>
+      <button id="btnClearActivity">Clear</button>
     </div>
-    <div class="wheel-shell">
-      <div class="wheel-pointer-left">▶</div>
-      <div class="wheel-pointer-right">◀</div>
-      <div id="wheelBelt" class="wheel-belt"></div>
-      <div class="wheel-shadow"></div>
-    </div>
-    <div class="wheel-controls">
-      <button id="wheelSpinBtn" class="btn gold">ROLL THE DRUM</button>
-      <button id="wheelRefreshBtn" class="btn green" style="display:none;">🔄 SPIN AGAIN</button>
-      <div class="result-box">
-        <div id="wheelResultTitle" class="result-title">READY TO SPIN</div>
-        <div id="wheelResultDesc" class="result-desc"></div>
-        <div id="wheelRarityBadge" class="result-rarity"></div>
-      </div>
-    </div>
-    <div id="wheelApplyBox" class="panel wheel-apply" style="display:none;">
-      <div class="panel-title">Apply Result?</div>
-      <div id="wheelApplySub" class="panel-sub"></div>
-      <div class="row">
-        <button id="wheelApplyNowBtn" class="btn gold">Apply Now</button>
-        <button id="wheelLogOnlyBtn" class="btn ghost">Log Only</button>
-        <button id="wheelUndoSpinBtn" class="btn danger">Undo Spin</button>
-      </div>
-    </div>
-    <div class="grid2">
-      <div class="panel">
-        <div class="panel-title">Possible Drops</div>
-        <div id="wheelLootGrid" class="wheel-loot-grid"></div>
-      </div>
-      <div class="panel">
-        <div class="panel-title">Wheel History</div>
-        <div id="wheelFeed" class="wheel-feed"></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="activityView" class="view">
-  <div class="panel">
-    <div class="panel-title">Activity Feed</div>
     <div id="activityList"></div>
-  </div>
-</section>
+  </section>
 
-<section id="settingsView" class="view">
-  <div class="panel">
-    <div class="panel-title">Backup / Restore</div>
-    <button id="btnExport" class="btn gold">Export JSON</button>
-    <button id="btnReset" class="btn danger">Reset to Seed</button>
-    <input id="importFile" type="file" />
-    <textarea id="importText"></textarea>
-    <button id="btnImportPaste" class="btn green block">Import Pasted JSON</button>
-  </div>
-</section>
+  <section id="wheelView" class="view">
+    <h2>🎰 Prize Wheel</h2>
+
+    <select id="wheelPlayerSelect"></select>
+    <div id="wheelSpinChip"></div>
+
+    <div class="wheel-wrap">
+      <div id="wheelBelt"></div>
+    </div>
+
+    <button id="wheelSpinBtn">SPIN</button>
+    <button id="wheelRefreshBtn" style="display:none">Reset</button>
+
+    <h3 id="wheelResultTitle">READY TO SPIN</h3>
+    <div id="wheelRarityBadge"></div>
+    <p id="wheelResultDesc"></p>
+
+    <div id="wheelApplyBox" style="display:none">
+      <p id="wheelApplySub"></p>
+      <button id="wheelApplyNowBtn">Apply</button>
+      <button id="wheelLogOnlyBtn">Log Only</button>
+      <button id="wheelUndoSpinBtn">Undo</button>
+    </div>
+
+    <h3>Recent Spins</h3>
+    <div id="wheelFeed"></div>
+  </section>
 
 </main>
 
-<div id="toastWrap" class="toast-wrap"></div>
+<div id="toastWrap"></div>
 
-<script src="app.js?v=1"></script>
+<script src="app.js"></script>
 </body>
 </html>
