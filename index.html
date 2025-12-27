@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Level Up at DQ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header>
+  <h1>🍦 Level Up at DQ</h1>
+  <nav>
+    <button onclick="showTab('overview')">Overview</button>
+    <button onclick="showTab('teams')">Teams</button>
+    <button onclick="showTab('players')">Players</button>
+    <button onclick="showTab('wheel')">🎰 Wheel</button>
+    <button onclick="showTab('activity')">Activity</button>
+    <button onclick="showTab('admin')">🔒 Admin</button>
+  </nav>
+</header>
+
+<main>
+  <section id="overview" class="tab"></section>
+  <section id="teams" class="tab"></section>
+  <section id="players" class="tab"></section>
+  <section id="wheel" class="tab"></section>
+  <section id="activity" class="tab"></section>
+
+  <section id="admin" class="tab">
+    <div id="admin-locked">
+      <h2>Admin Access</h2>
+      <input type="password" id="adminPin" placeholder="Enter PIN" />
+      <button onclick="unlockAdmin()">Unlock</button>
+    </div>
+    <div id="admin-unlocked" style="display:none;">
+      <h2>Admin Controls</h2>
+      <button onclick="exportData()">⬇ Export data.json</button>
+      <button onclick="lockAdmin()">🔒 Lock Admin</button>
+    </div>
+  </section>
+</main>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
