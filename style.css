@@ -1,0 +1,118 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0b0b0b;
+  color: #fff;
+}
+
+header {
+  padding: 12px;
+  background: #111;
+  border-bottom: 2px solid #222;
+}
+
+h1 {
+  margin: 0 0 10px 0;
+  text-align: center;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+nav button {
+  padding: 8px 14px;
+  background: #222;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+nav button:hover {
+  background: #333;
+}
+
+main {
+  padding: 16px;
+}
+
+.tab {
+  display: none;
+}
+
+.tab.active {
+  display: block;
+}
+
+.card {
+  background: #151515;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.player-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-name {
+  font-weight: bold;
+}
+
+.player-meta {
+  font-size: 0.85rem;
+  color: #bbb;
+}
+
+.progress {
+  height: 6px;
+  background: #222;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #00f3ff, #ffd700);
+}
+
+.rainbow {
+  border: 2px solid;
+  border-image: linear-gradient(
+    45deg,
+    red,
+    orange,
+    yellow,
+    green,
+    blue,
+    purple
+  ) 1;
+}
+
+#wheel select,
+#wheel button {
+  padding: 10px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+#toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  padding: 12px 20px;
+  border-radius: 10px;
+  display: none;
+  border: 1px solid #333;
+}
